@@ -1,6 +1,5 @@
 package uni.isw.sigconbackend.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -9,8 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,99 +21,77 @@ public class PersonaController {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
     private PersonaService personaService;
-    //@GetMapping("/all")
-    @RequestMapping(value = "/all", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<Persona> getPersonas(){
-        return personaService.getPersonas();        
-    }
-    
+      
     @RequestMapping(value = "/listar", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Persona>> getPersonas1() {
-            logger.info("> getPersonas [Persona]");
+    public ResponseEntity<List<Persona>> getPersonas() {
+            logger.info(">listar");
 
-            List<Persona> list = null;
+            List<Persona> listaPersonas = null;
             try {
-                    list = personaService.getPersonas();
-
-                    if (list == null) {
-                            list = new ArrayList<>();
-                    }
+                    listaPersonas = personaService.getPersonas();
             } catch (Exception e) {
                     logger.error("Unexpected Exception caught.", e);
-                    return new ResponseEntity<>(list, HttpStatus.INTERNAL_SERVER_ERROR);
+                    return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
             }
-
-            logger.info("< getPersonas [Persona]");
-            return new ResponseEntity<>(list, HttpStatus.OK);
+            logger.info(">listar");
+            return new ResponseEntity<>(listaPersonas, HttpStatus.OK);
     }
     
-    @RequestMapping(value = "/search/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Persona> getPersona(@PathVariable("id") Long id) {
-            logger.info("> getPersona [Persona]");
-
-            Optional<Persona> persona = null;
+    @RequestMapping(value = "/search", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Persona> getPersona(@RequestBody Optional<Persona> persona) {
+            logger.info(">search" +  persona.toString());
             try {
-                    persona = personaService.getPersona(id);
-                    if (!persona.isPresent())
-                        persona.toString();
-                            
-                    logger.info(persona.get().getNombres());
+                    persona = personaService.getPersona(persona.get().getId_persona());                    
                     
             } catch (Exception e) {
                     logger.error("Unexpected Exception caught.", e);
-                    return new ResponseEntity<>(persona.get(), HttpStatus.INTERNAL_SERVER_ERROR);
+                    return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
             }
-
-            logger.info("< getPersona [Persona]");
+            logger.info(">search" +  persona.toString());
             return new ResponseEntity<>(persona.get(), HttpStatus.OK);
     }
     
-    @RequestMapping(value = "/actualizar/{id}/{nombres}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)	 																		  
-    public void saveOrUpdate(@PathVariable("id") Long id, @PathVariable("nombres") String nombres
-            ){
+    @RequestMapping(value = "/agregar", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)	 																		  
+    public ResponseEntity<Persona> agregar(@RequestBody Persona persona){
 
-        logger.info("> actualizar: " + id + " " + nombres);
-        Integer response = 0;
-        Persona persona=null;
-        try{
-             persona=new Persona(id,nombres);
+        logger.info(">agregar: " + persona.toString());        
+        try{             
              personaService.saveOrUpdate(persona);
         } catch(Exception e){
             logger.error("Unexpected Exception caught. "+ e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
+        logger.info(">agregar: " + persona.toString()); 
+        return new ResponseEntity<>(persona, HttpStatus.OK);
     } 
     
-    @RequestMapping(value = "/agregar/{apellido_paterno}/{apellido_materno}/{nombres}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)	 																		  
-    public void saveOrUpdate(@PathVariable("apellido_paterno") String apellido_paterno,
-            @PathVariable("apellido_materno") String apellido_materno,
-            @PathVariable("nombres") String nombres
-            ){
+    @RequestMapping(value = "/actualizar", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)	 																		  
+    public ResponseEntity<Persona> actualizar(@RequestBody Persona persona){
 
-        logger.info("> agregar: " + apellido_materno + " "+ apellido_paterno+ " "+nombres);
-        Integer response = 0;
-        Persona persona=null;
-        try{
-             persona=new Persona(apellido_paterno,apellido_materno,nombres);
+        logger.info(">actualizar: " + persona.toString());                
+        try{             
              personaService.saveOrUpdate(persona);
         } catch(Exception e){
             logger.error("Unexpected Exception caught. "+ e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
+        logger.info(">actualizar: " + persona.toString());                
+        return new ResponseEntity<>(persona, HttpStatus.OK);
     } 
     
-    @RequestMapping(value = "/delete/{id}", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)	 																		  
-    public void delete(@PathVariable("id") Long id){
+    @RequestMapping(value = "/eliminar", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)	 																		  
+    public ResponseEntity<Persona> delete(@RequestBody Optional<Persona> persona){
 
-        logger.info("> delete: " + id );        
-        Optional<Persona> persona = null;
+        logger.info(">eliminar: " + persona.toString() );                
         try{
-            persona = personaService.getPersona(id);
+            persona = personaService.getPersona(persona.get().getId_persona());
             if (persona.isPresent())            
-                personaService.delete(id);
+                personaService.delete(persona.get().getId_persona());
         } catch(Exception e){
             logger.error("Unexpected Exception caught. "+ e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
+        logger.info(">eliminar: " + persona.toString() );                
+        return new ResponseEntity<>(persona.get(), HttpStatus.OK);
     } 
 }
